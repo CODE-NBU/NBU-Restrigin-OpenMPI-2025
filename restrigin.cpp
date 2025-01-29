@@ -11,6 +11,10 @@ https://en.wikipedia.org/wiki/Rastrigin_function
 
 using namespace std;
 
+const int ROOT_NODE = 0;
+
+const int DEFAULT_TAG = 1;
+
 const int N = 5;
 
 double f(const vector<double> &x) {
@@ -36,20 +40,20 @@ int main(int argc, char** argv) {
 
 	if(rank == 0) {
 		for(int r=0; r<size; r++) {
-			if(r == 0) {
+			if(r == ROOT_NODE) {
 				continue;
 			}
 
-			MPI_Send(&N, 1, MPI_INT, r, 1, MPI_COMM_WORLD);
+			MPI_Send(&N, 1, MPI_INT, r, DEFAULT_TAG, MPI_COMM_WORLD);
 		}
 
 		for(int r=0; r<size; r++) {
-			if(r == 0) {
+			if(r == ROOT_NODE) {
 				continue;
 			}
 
 			double *result = new double[ N ];
-			MPI_Recv(result, N, MPI_DOUBLE, r, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(result, N, MPI_DOUBLE, r, DEFAULT_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			vector<double> x;
 			for(int i=0; i<N; i++) {
 				x.push_back( result[i] );
@@ -60,7 +64,7 @@ int main(int argc, char** argv) {
 		}
 	} else {
 		int n;
-		MPI_Recv(&n, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&n, 1, MPI_INT, ROOT_NODE, DEFAULT_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 		double best;
 		vector<double> x, y;
@@ -91,7 +95,7 @@ int main(int argc, char** argv) {
 			result[i++] = xi;
 		}
 
-		MPI_Send(result, x.size(), MPI_DOUBLE, 0, 1, MPI_COMM_WORLD);
+		MPI_Send(result, x.size(), MPI_DOUBLE, ROOT_NODE, DEFAULT_TAG, MPI_COMM_WORLD);
 
 		delete []result;
 	}
